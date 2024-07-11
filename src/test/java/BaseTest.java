@@ -7,8 +7,6 @@ import java.util.List;
 import org.json.JSONObject;
 import org.json.JSONArray;
 
-import static io.restassured.RestAssured.given;
-
 public class BaseTest {
     private String chave = "bad3b3cb3565c9ae477c0ef5a08daa5dc79260c5";
     private RequestSpecification httpRequest;
@@ -19,12 +17,11 @@ public class BaseTest {
         RestAssured.baseURI = "https://api.pipedrive.com/v1"; // setando o endereço URL padrão
         httpRequest = RestAssured.given().queryParam("api_token",chave); // setando a chave de acesso. OBS: poderia ficar num properties
     }
-
     public Response carregaListaUsuarios(){
         response = httpRequest.get("/users");
         return response;
     }
-    public Response criarNovoUsuario(String nome,String email){
+    public Response criarNovoUsuario(String nome,String email, String telefone){
         JSONObject novoUsuario = new JSONObject();
         //criando array de acessos
         JSONObject acessos = new JSONObject();
@@ -33,6 +30,8 @@ public class BaseTest {
         acessoArray.put(acessos);
 
         // cria o json completo
+        novoUsuario.put("phone",telefone);
+        novoUsuario.put("name",nome);
         novoUsuario.put("email", email);
         novoUsuario.put("access",acessoArray);
         novoUsuario.put("active_flag",true);
@@ -47,13 +46,12 @@ public class BaseTest {
                 .then()
                 .extract().response();
         return response;
-
     }
 
-    public boolean pesquisarUsuario(String email){
-       List<String> valores = httpRequest.get("/users").then().extract().jsonPath().getList("data.email");
+    public boolean pesquisarUsuario(String nome){
+       List<String> valores = httpRequest.get("/users").then().extract().jsonPath().getList("data.name");
        for(int i=0;i< valores.size();i++ ){
-           if(valores.get(i).matches(email)) {
+           if(valores.get(i).matches(nome)) {
                return true;
            }
        }
